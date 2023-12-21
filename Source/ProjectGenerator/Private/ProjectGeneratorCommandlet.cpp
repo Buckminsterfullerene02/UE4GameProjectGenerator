@@ -414,14 +414,14 @@ int32 UProjectGeneratorCommandlet::MainInternal(FCommandletRunParams& Params) {
 	//Generate the editor target file
 	const FString TargetFileName = ProjectSourceDir / FString::Printf(TEXT("%sEditor.Target.cs"), *Params.ProjectName);
 	GenerateEditorFile(Params, TargetFileName, LooseGameModuleNames, TEXT("Editor"));
-	const FString GameFileName = ProjectSourceDir / FString::Printf(TEXT("%sGame.Target.cs"), *Params.ProjectName);
-	GenerateEditorFile(Params, GameFileName, LooseGameModuleNames, TEXT("Game"));
+	const FString GameFileName = ProjectSourceDir / FString::Printf(TEXT("%s.Target.cs"), *Params.ProjectName);
+	GenerateEditorFile(Params, GameFileName, LooseGameModuleNames, TEXT(""));
 
 	UE_LOG(LogProjectGeneratorCommandlet, Display, TEXT("Wrote project data to %s"), *Params.OutputDirectory);
 	return 0;
 }
 
-void UProjectGeneratorCommandlet::GenerateEditorFile(FCommandletRunParams& Params, const FString& FileName, const TSet<FString>& GameModuleNames, const FString& EditorType) {
+void UProjectGeneratorCommandlet::GenerateEditorFile(FCommandletRunParams& Params, const FString& FileName, const TSet<FString>& GameModuleNames, const FString& TargetType) {
 
 	FOutputDeviceFile TargetFileOutputDevice(*FileName, true, false);
 	TargetFileOutputDevice.SetAutoEmitLineTerminator(true);
@@ -429,10 +429,10 @@ void UProjectGeneratorCommandlet::GenerateEditorFile(FCommandletRunParams& Param
 
 	TargetFileOutputDevice.Logf(TEXT("using UnrealBuildTool;"));
 	TargetFileOutputDevice.Logf(TEXT(""));
-	TargetFileOutputDevice.Logf(TEXT("public class %s%sTarget : TargetRules {"), *Params.ProjectName, *EditorType);
-	TargetFileOutputDevice.Logf(TEXT("	public %s%sTarget(TargetInfo Target) : base(Target) {"), *Params.ProjectName, *EditorType);
+	TargetFileOutputDevice.Logf(TEXT("public class %s%sTarget : TargetRules {"), *Params.ProjectName, *TargetType);
+	TargetFileOutputDevice.Logf(TEXT("	public %s%sTarget(TargetInfo Target) : base(Target) {"), *Params.ProjectName, *TargetType);
 
-	TargetFileOutputDevice.Logf(TEXT("		Type = TargetType.%s;"), *EditorType);
+	TargetFileOutputDevice.Logf(TEXT("		Type = TargetType.%s;"), *TargetType);
 #if ENGINE_MAJOR_VERSION > 5 || ENGINE_MINOR_VERSION > 24
 	TargetFileOutputDevice.Logf(TEXT("		DefaultBuildSettings = BuildSettingsVersion.V2;"));
 #endif
