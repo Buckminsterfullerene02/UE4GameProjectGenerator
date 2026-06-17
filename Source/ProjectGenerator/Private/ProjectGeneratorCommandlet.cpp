@@ -14,6 +14,14 @@
 #include "Misc/OutputDeviceFile.h"
 #include "UObject/MetaData.h"
 
+#include "Runtime/Launch/Resources/Version.h"
+
+#if ENGINE_MAJOR_VERSION == 5
+	#define CLASS_API CLASS_MinimalAPI
+#else
+	#define CLASS_API CLASS_NoExport
+#endif
+
 DEFINE_LOG_CATEGORY(LogProjectGeneratorCommandlet);
 
 #pragma optimize("", off)
@@ -540,10 +548,10 @@ FString UProjectGeneratorCommandlet::GetIncludePathForObject(UObject* Object) {
 	//mimic that behavior and get uniform include paths for all defined objects
 
 	UPackage* Package = Object->GetOutermost();
-	UMetaData* MetaData = Package->GetMetaData();
-	checkf(MetaData, TEXT("Metadata object is not found on the package %s"), *Package->GetName());
+	FMetaData MetaData = Package->GetMetaData();
+	checkf(&MetaData, TEXT("Metadata object is not found on the package %s"), *Package->GetName());
 
-	FString IncludePath = MetaData->GetValue(Object, TEXT("ModuleRelativePath"));
+	FString IncludePath = MetaData.GetValue(Object, TEXT("ModuleRelativePath"));
 	checkf(!IncludePath.IsEmpty(), TEXT("ModuleRelativePath metadata not found on object %s"), *Object->GetPathName());
 	
 	// Walk over the first potential slash
@@ -605,7 +613,7 @@ bool UProjectGeneratorCommandlet::GetSpecialObjectIncludePath(UObject* Object, F
 
 	//Check if the object is class has NoExport flag, and then include the NoExportTypes.h
 	if (const UClass* Class = Cast<UClass>(Object)) {
-		if (Class->HasAnyClassFlags(CLASS_NoExport)) {
+		if (Class->HasAnyClassFlags(CLASS_API)) {
 			OutIncludePath = TEXT("UObject/NoExportTypes.h");
 			return true;
 		}
